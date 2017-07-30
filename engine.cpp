@@ -18,8 +18,7 @@ Engine::Engine()
 
     this->svc_addr_.sin_family = AF_INET;
     this->svc_addr_.sin_port = htons(PORT);
-    this->svc_addr_.sin_addr.s_addr = inet_addr(ADDR);
-}
+    this->svc_addr_.sin_addr.s_addr = inet_addr(ADDR); }
 
 Engine::~Engine()
 {
@@ -41,7 +40,7 @@ bool Engine::create_socket()
 {
     if ((this->svc_fd_ = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
-        printf("create_socket errno:%d\n", errno);
+        cout << "create_socket errno:" << errno << endl;
         return false;
     }
 
@@ -53,7 +52,7 @@ bool Engine::bind_socket()
     if (bind(this->svc_fd_, (struct sockaddr *)&this->svc_addr_, sizeof(this->svc_addr_)) == -1)
     {
         close(this->svc_fd_);
-        printf("bind_socket errno:%d\n", errno);
+        cout << "bind_socket errno:" << errno << endl;
         return false;
     }
     return true;
@@ -64,7 +63,7 @@ bool Engine::listen_socket()
     if (listen(this->svc_fd_, LISTEN_NUM) == -1)
     {
         close(this->svc_fd_);
-        printf("liste_socket errno:%d\n", errno);
+        cout << "liste_socket errno:" << errno << endl;
         return false;
     }
     return true;
@@ -72,9 +71,7 @@ bool Engine::listen_socket()
 
 void Engine::accept_socket()
 {
-    cout << "进程ID：" << getpid() << endl;
-    cout << "线程ID:" << pthread_self() << endl;
-    cout << "全局线程ID：" << this->gettid() << endl;
+    cout << "server start success!" << endl;
 
     socklen_t peer_len = sizeof(this->peer_addr_);
     while (true)
@@ -82,7 +79,7 @@ void Engine::accept_socket()
         int client_fd = accept(this->svc_fd_, (struct sockaddr *)&this->peer_addr_, &peer_len);
         if (client_fd == -1)
         {
-            printf("accept_socket errno:%d\n", errno);
+            cout << "accept_socket errno:" << errno << endl;
             continue;
         }
 
@@ -90,49 +87,55 @@ void Engine::accept_socket()
         pthread_attr_t attr;
         if (pthread_attr_init(&attr) != 0)
         {
-            printf("pthread_attr_init errno:%d\n", errno);
+            cout << "pthread_attr_init errno:" << errno << endl;
             continue;
         }
 
         if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED))
         {
-            printf("pthread_attr_setdetachstate errno:%d\n", errno);
+            cout << "pthread_attr_setdetachstate errno:" << errno << endl;
             pthread_attr_destroy(&attr);
             continue;
         }
 
         if (pthread_create(&tid, &attr, unit_process, (void *)this) != 0)
         {
-            printf("create_unit_process errno:%d\n", errno);
+            cout << "create_unit_process errno:" << errno << endl;
             pthread_attr_destroy(&attr);
             continue;
         }
 
         this->client_info_map_[tid] = client_fd;
-        printf("accept_socket success! client file des:%d, thread id:%ld\n", client_fd, tid);
+        cout << "accept client request!" << endl;
+
+        char ip[INET6_ADDRSTRLEN];
+        if (inet_ntop(this->peer_addr_.sin_family, (void *)&this->peer_addr_.sin_addr, ip, sizeof(ip)))
+        {
+            cout << "ip:" << string(ip) << endl;
+            cout << "port:" << this->peer_addr_.sin_port<< endl;
+        }
     }
 }
 
 void *Engine::unit_process(void *this_)
 {
-    Engine * sock_ptr = (Engine *)this_;
-    cout << "进程ID：" << getpid() << endl;
-    cout << "线程ID:" << pthread_self() << endl;
-    cout << "全局线程ID：" << sock_ptr->gettid() << endl;
+    Engine *engine_ptr = (Engine *)this_;
+    cout << "process id:" << getpid() << endl;
+    cout << "pthread id:" << pthread_self() << endl;
 
-    map<pthread_t, int>::iterator client_info_it;
+    map<pthread_t, int>::iterator client_info_iter;
     while (true)
     {
-        client_info_it = sock_ptr->client_info_map_.find(pthread_self());
-        if (client_info_it != sock_ptr->client_info_map_.end())
+        client_info_iter = engine_ptr->client_info_map_.find(pthread_self());
+        if (client_info_iter != engine_ptr->client_info_map_.end())
             break;
-        printf("用户信息未找到，等待1ms再找\n");
+        cout << "no find target, sleep 1 ms ..." << endl;
         sleep(1);
     }
 
-    pthread_t tid = client_info_it->first;
+    pthread_t tid = client_info_iter->first;
     pthread_detach(tid);
-    int client_fd = client_info_it->second;
+    int client_fd = client_info_iter->second;
     cout << "tid:" << tid << endl;
     cout << "client_fd:" << client_fd<< endl;
 
@@ -144,17 +147,17 @@ void *Engine::unit_process(void *this_)
         {
             if (errno == EAGAIN || errno == EINTR)
             {
-                    printf("recv_msg1 errno:%d\n", errno);
+                    cout << "recv_msg1 errno:" << errno << endl;
                     continue;
             }
-            printf("recv_msg2 errno:%d\n", errno);
+            cout << "recv_msg2 errno:" << errno << endl;
             continue;
         }
 
         int16_t msg_len_int16 = *(int16_t *)msg_len_char;
         if (msg_len_int16 == 0)
         {
-            printf("client operator errno1:%d\n", errno);
+            cout << "client operator errno1:" << errno << endl;
             break;
         }
 
@@ -165,11 +168,11 @@ void *Engine::unit_process(void *this_)
             free(msg_info);
             if (errno == EAGAIN || errno == EINTR)
                     continue;
-            printf("client operator errno2:%d\n", errno);
+            cout << "client operator errno2:" << errno << endl;
             continue;
         }
 
-        if (sock_ptr->process_handle(&msg_len_int16, msg_info) == false)
+        if (engine_ptr->process_handle(&msg_len_int16, msg_info) == false)
         {
             free(msg_info);
             close(client_fd);
@@ -187,7 +190,7 @@ void *Engine::unit_process(void *this_)
         memcpy(msg_info_buf + sizeof(int16_t), msg_info, msg_len_int16);
         free(msg_info);
         if (send(client_fd, msg_info_buf, msg_len_int16 + sizeof(int16_t), 0) == -1)
-            printf("service operator errno:%d\n", errno);
+            cout << "service operator errno:" << errno << endl;
 
         free(msg_info_buf);
     }
@@ -202,11 +205,11 @@ bool Engine::process_handle(int16_t *msg_len_int16, char *msg_info)
     switch (msg_number)
     {
         case 1:
-            printf("client_msg1:%s\n", msg_info_buf);
+            cout << "client_msg1:" << string(msg_info_buf) << endl;
             *msg_len_int16 = 0;
             break;
         case 2:
-            printf("client_msg2:%s\n", msg_info_buf);
+            cout << "client_msg2:" << string(msg_info_buf) << endl;;
             for (int i = 0; i < strlen(msg_info_buf); ++i)
             {
                 if (msg_info_buf[i] >= 65 && msg_info_buf[i] <= 90)
