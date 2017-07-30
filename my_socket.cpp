@@ -1,4 +1,5 @@
-#include "./my_socket.h"
+#include "my_socket.h"
+#include "config.h"
 
 #include <pthread.h>
 #include <sys/socket.h>
@@ -127,9 +128,9 @@ void *MySocket::unit_process(void *this_)
 
     while(true)
     {
-        char msg_len_char[INT16_SIZE] = {0};
-        memset(msg_len_char, 0, INT16_SIZE);
-        if (recv(client_fd, msg_len_char, INT16_SIZE, 0) == -1)
+        char msg_len_char[sizeof(int16_t)] = {0};
+        memset(msg_len_char, 0, sizeof(int16_t));
+        if (recv(client_fd, msg_len_char, sizeof(int16_t), 0) == -1)
         {
             if (errno == EAGAIN || errno == EINTR)
             {
@@ -171,11 +172,11 @@ void *MySocket::unit_process(void *this_)
             continue;
         }
 
-        char *msg_info_buf = (char *)malloc(msg_len_int16 + INT16_SIZE);
-        memcpy(msg_info_buf, (char *)&msg_len_int16, INT16_SIZE);
-        memcpy(msg_info_buf + INT16_SIZE, msg_info, msg_len_int16);
+        char *msg_info_buf = (char *)malloc(msg_len_int16 + sizeof(int16_t));
+        memcpy(msg_info_buf, (char *)&msg_len_int16, sizeof(int16_t));
+        memcpy(msg_info_buf + sizeof(int16_t), msg_info, msg_len_int16);
         free(msg_info);
-        if (send(client_fd, msg_info_buf, msg_len_int16 + INT16_SIZE, 0) == -1)
+        if (send(client_fd, msg_info_buf, msg_len_int16 + sizeof(int16_t), 0) == -1)
             printf("service operator errno:%d\n", errno);
 
         free(msg_info_buf);
@@ -186,7 +187,7 @@ void *MySocket::unit_process(void *this_)
 bool MySocket::process_handle(int16_t *msg_len_int16, char *msg_info)
 {
     int16_t msg_number = *(int16_t *)msg_info;
-    char *msg_info_buf = msg_info + INT16_SIZE;
+    char *msg_info_buf = msg_info + sizeof(int16_t);
 
     switch (msg_number)
     {
