@@ -206,7 +206,16 @@ bool Engine::process_handle(int16_t *msg_len_int16, char *msg_info)
     {
         case 1:
             cout << "client_msg1:" << string(msg_info_buf) << endl;
-            *msg_len_int16 = 0;
+            {
+                std::string name;
+                int pos = string(msg_info_buf).find('#');
+                name.append(msg_info_buf, pos);
+                string password;
+                password.append(msg_info_buf, pos + 1, strlen(msg_info_buf) - pos - 1);
+                cout << "name:" << name << endl;
+                cout << "password:" << password << endl;
+                *msg_len_int16 = 0;
+            }
             break;
         case 2:
             cout << "client_msg2:" << string(msg_info_buf) << endl;;
