@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "config.h"
+#include "data_packet.h"
 
 #include <pthread.h>
 #include <sys/socket.h>
@@ -142,93 +143,70 @@ void *Engine::unit_process(void *this_)
     while(true)
     {
         char msg_len_char[sizeof(int16_t)] = {0};
-        memset(msg_len_char, 0, sizeof(int16_t));
         if (recv(client_fd, msg_len_char, sizeof(int16_t), 0) == -1)
         {
-            if (errno == EAGAIN || errno == EINTR)
+            if (errno == EINTR)
             {
-                    cout << "recv_msg1 errno:" << errno << endl;
+                    cout << "recv signal break errno:" << errno << endl;
                     continue;
             }
-            cout << "recv_msg2 errno:" << errno << endl;
-            continue;
+            cout << "recv unknown error1:" << errno << endl;
+            break;
         }
 
         int16_t msg_len_int16 = *(int16_t *)msg_len_char;
         if (msg_len_int16 == 0)
         {
-            cout << "client operator errno1:" << errno << endl;
+            cout << "client disconnect:" << errno << endl;
             break;
         }
 
-        char *msg_info = (char *)malloc(msg_len_int16);
-        memset(msg_info, 0, msg_len_int16);
-        if (recv(client_fd, msg_info, msg_len_int16, 0) == -1)
+        DataPacket recv_packet(msg_len_int16);
+        if (recv(client_fd, recv_packet.get_data_ptr(), msg_len_int16, 0) == -1)
         {
-            free(msg_info);
-            if (errno == EAGAIN || errno == EINTR)
+            if (errno == EINTR)
                     continue;
-            cout << "client operator errno2:" << errno << endl;
+            cout << "recv unknown error2:" << errno << endl;
             continue;
         }
 
-        if (engine_ptr->process_handle(&msg_len_int16, msg_info) == false)
+        if (engine_ptr->recv_msg(client_fd, &recv_packet) == false)
         {
-            free(msg_info);
             close(client_fd);
             break;
         }
 
         if (msg_len_int16 == 0)
         {
-            free(msg_info);
             continue;
         }
 
-        char *msg_info_buf = (char *)malloc(msg_len_int16 + sizeof(int16_t));
-        memcpy(msg_info_buf, (char *)&msg_len_int16, sizeof(int16_t));
-        memcpy(msg_info_buf + sizeof(int16_t), msg_info, msg_len_int16);
-        free(msg_info);
-        if (send(client_fd, msg_info_buf, msg_len_int16 + sizeof(int16_t), 0) == -1)
-            cout << "service operator errno:" << errno << endl;
-
-        free(msg_info_buf);
     }
     pthread_exit((void *)1);
 }
 
-bool Engine::process_handle(int16_t *msg_len_int16, char *msg_info)
+bool Engine::recv_msg(int client_fd, void* recv_packet)
 {
-    int16_t msg_number = *(int16_t *)msg_info;
-    char *msg_info_buf = msg_info + sizeof(int16_t);
+    DataPacket &request = *(DataPacket *)recv_packet;
+    int16_t msg_number;
+    request >> msg_number;
+    cout << msg_number << endl;
 
-    switch (msg_number)
+    DataPacket respond;
+    const int16_t len = sizeof(int16_t);
+    respond << len;
+    respond << msg_number + 1;
+    return this->send_msg(client_fd, &respond);
+}
+
+bool Engine::send_msg(int client_fd, void* send_packet)
+{
+    DataPacket &respond = *(DataPacket *)send_packet;
+    int ret = send(client_fd, respond.get_data_ptr(), sizeof(int16_t), 0);
+    if (-1 == ret)
     {
-        case 1:
-            cout << "client_msg1:" << string(msg_info_buf) << endl;
-            {
-                std::string name;
-                int pos = string(msg_info_buf).find('#');
-                name.append(msg_info_buf, pos);
-                string password;
-                password.append(msg_info_buf, pos + 1, strlen(msg_info_buf) - pos - 1);
-                cout << "name:" << name << endl;
-                cout << "password:" << password << endl;
-                *msg_len_int16 = 0;
-            }
-            break;
-        case 2:
-            cout << "client_msg2:" << string(msg_info_buf) << endl;;
-            for (int i = 0; i < strlen(msg_info_buf); ++i)
-            {
-                if (msg_info_buf[i] >= 65 && msg_info_buf[i] <= 90)
-                    msg_info_buf[i] += 32;
-                if (msg_info_buf[i] >= 97 && msg_info_buf[i] <= 122)
-                    msg_info_buf[i] -= 32;
-            }
-            break;
-        default:
-            return false;
+        cout << "service operator errno:" << errno << endl;
+        return false;
     }
     return true;
 }

@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
+
+#include "data_packet.h"
 using namespace std;
 
 int main()
@@ -27,23 +29,18 @@ int main()
 	while(1)
 	{
 		getchar();
-        char *msg_buf = (char *)malloc(sizeof("samoyedsun") + sizeof(int16_t) * 2);
-        *(int16_t *)msg_buf = sizeof("samoyedsun") + sizeof(int16_t);
-        *(int16_t *)(msg_buf + sizeof(int16_t)) = 2;
-        memcpy(msg_buf + sizeof(int16_t) * 2, "samoyedsun", sizeof("samoyedsun"));
-		write(fd, msg_buf, sizeof("samoyedsun") + sizeof(int16_t) * 2);
-        free(msg_buf);
+        DataPacket dp;
+        dp << sizeof(int16_t);
+        dp << 23;
+       	write(fd, dp.get_data_ptr(), dp.get_data_size());
 
-        char msg_len[2] = {0};
-		read(fd, msg_len, 2);
-        char msg_num[2] = {0};
-		read(fd, msg_num, 2);
-        char msg_info[100] = {0};
-		read(fd, msg_info, *(int16_t *)msg_len - 2);
-	//	read(fd, msg_info, sizeof("samoyedsun"));
-        printf("server_info:%d\t%d\t%s\t%ld \n", *(int16_t *)msg_len,
-                *(int16_t *)msg_num, msg_info, sizeof("samoyedsun"));
+        int16_t msg_len;
+		read(fd, &msg_len, sizeof(msg_len));
+        int16_t msg_num;
+		read(fd, &msg_num, sizeof(msg_num));
+        cout << msg_num << endl;
 	}
+
 	cout << ntohs(addr.sin_port) << endl;
 	close(fd);
 	return 0;

@@ -1,5 +1,6 @@
-//#ifndef ACTOR
-//#define ACTOR
+#ifndef ACTOR
+#define ACTOR
+
 #include <iostream>
 
 class Actor
@@ -13,4 +14,4 @@ class Actor
         std::string password;
 };
 
-//#endif
+#endif

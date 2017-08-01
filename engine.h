@@ -1,5 +1,5 @@
-#ifndef MY_SOCKET
-#define MY_SOCKET
+#ifndef ENGINE
+#define ENGINE
 
 #include <iostream>
 #include <queue>
@@ -27,8 +27,9 @@ class Engine
     bool listen_socket();
     void accept_socket();
 
-    static void *unit_process(void*);
-    bool process_handle(int16_t *msg_len_int16, char *msg_info);
+    static void *unit_process(void* this_);
+    bool recv_msg(int client_fd, void* recv_packet);
+    bool send_msg(int client_fd, void* send_packet);
 
     inline pid_t gettid()
     {
