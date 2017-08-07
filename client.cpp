@@ -21,24 +21,30 @@ int main()
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(9988);
-	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	addr.sin_addr.s_addr = inet_addr("112.74.169.72");
 
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) == -1)
 		perror("accept");
 
 	while(1)
 	{
-		getchar();
+    	getchar();
         DataPacket dp;
-        dp << sizeof(int16_t);
-        dp << 23;
+        dp << (int16_t)sizeof(int16_t);
+        dp << (int16_t)23;
+        cout << "send size:" << dp.get_data_size() << endl;
        	write(fd, dp.get_data_ptr(), dp.get_data_size());
+        char msg_len_char[sizeof(int16_t)];
+		read(fd, &msg_len_char, sizeof(int16_t));
+        int16_t msg_len = *((int16_t *)msg_len_char);
+        cout << "recv msg_len : " << msg_len << endl;
 
-        int16_t msg_len;
-		read(fd, &msg_len, sizeof(msg_len));
+
+        DataPacket dp2(msg_len);
+		read(fd, dp2.get_data_ptr(), msg_len);
         int16_t msg_num;
-		read(fd, &msg_num, sizeof(msg_num));
-        cout << msg_num << endl;
+        dp2 >> msg_num;
+        cout << "recv msg_num : " << msg_num << endl;
 	}
 
 	cout << ntohs(addr.sin_port) << endl;

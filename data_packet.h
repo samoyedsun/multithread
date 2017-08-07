@@ -10,18 +10,22 @@ class DataPacket
         DataPacket();
         DataPacket(int size);
         ~DataPacket();
-template <typename T>
+	template <typename T>
         DataPacket& operator << (const T &val)
         {
             void *buf_ptr = NULL;
             int new_size = sizeof(val);
-
             if (0u == this->block_count_)
+            {
                 buf_ptr = malloc(new_size);
+                memcpy(buf_ptr, (void *)&val, new_size);
+            }
             else
             {
+                int buf_size = new_size;
                 new_size += this->block_count_;
                 buf_ptr = realloc(this->data_block_, new_size);
+                memcpy((char *)buf_ptr + this->block_count_, (void *)&val, buf_size);
             }
 
             if (NULL == buf_ptr)
@@ -43,8 +47,10 @@ template <typename T>
         {
             if (0u >= this->block_count_)
                 return *this;
+            std::cout << "block_count_:" << this->block_count_ << std::endl;
 
             int ele_size = sizeof(val);
+            std::cout << "ele_size:" << ele_size << std::endl;
             char *buf_ptr =  (char *)this->pos_ptr_;
 
             if (memcpy((void *)&val, buf_ptr, ele_size) != NULL)
@@ -54,6 +60,7 @@ template <typename T>
                 this->block_count_ -= ele_size;
             }
 
+            std::cout << "ele_val:" << val << std::endl;
             return *this;
         }
 

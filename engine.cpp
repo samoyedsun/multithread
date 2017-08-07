@@ -154,7 +154,8 @@ void *Engine::unit_process(void *this_)
             break;
         }
 
-        int16_t msg_len_int16 = *(int16_t *)msg_len_char;
+        int16_t msg_len_int16 = *((int16_t *)msg_len_char);
+        cout << "msg_len_int16_t : " << msg_len_int16 << endl;
         if (msg_len_int16 == 0)
         {
             cout << "client disconnect:" << errno << endl;
@@ -190,23 +191,25 @@ bool Engine::recv_msg(int client_fd, void* recv_packet)
     DataPacket &request = *(DataPacket *)recv_packet;
     int16_t msg_number;
     request >> msg_number;
-    cout << msg_number << endl;
+    cout << "msg_number : " << msg_number << endl;
 
     DataPacket respond;
-    const int16_t len = sizeof(int16_t);
+    int16_t len = sizeof(int16_t);
+    int16_t num = msg_number + 1;
     respond << len;
-    respond << msg_number + 1;
+    respond << num;
     return this->send_msg(client_fd, &respond);
 }
 
 bool Engine::send_msg(int client_fd, void* send_packet)
 {
     DataPacket &respond = *(DataPacket *)send_packet;
-    int ret = send(client_fd, respond.get_data_ptr(), sizeof(int16_t), 0);
+    int ret = send(client_fd, respond.get_data_ptr(), respond.get_data_size(), 0);
     if (-1 == ret)
     {
         cout << "service operator errno:" << errno << endl;
         return false;
     }
+    cout << "respond end" << respond.get_data_size() << endl;
     return true;
 }
