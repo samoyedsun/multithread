@@ -18,7 +18,7 @@ server.o:server.cpp engine.h
 	g++ -c server.cpp
 data_packet.o:data_packet.cpp data_packet.h
 	g++ -c data_packet.cpp
-engine.o:engine.cpp engine.h data_packet.h
+engine.o:engine.cpp engine.h data_packet.h actor.h
 	g++ -c engine.cpp
 actor.o:actor.cpp actor.h data_packet.h
 	g++ -c actor.cpp

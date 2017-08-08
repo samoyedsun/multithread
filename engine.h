@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "actor.h"
+
 using namespace std;
 
 class Engine
@@ -28,8 +30,6 @@ class Engine
     void accept_socket();
 
     static void *unit_process(void* this_);
-    bool recv_msg(int client_fd, void* recv_packet);
-    bool send_msg(int client_fd, void* send_packet);
 
     inline pid_t gettid()
     {
@@ -44,7 +44,7 @@ class Engine
 
     int svc_fd_;
     map<pthread_t, int> client_info_map_;
-    list<int> cli_fd_list_;
+    map<pthread_t, Actor> client_obj_map_;
 };
 
 #endif

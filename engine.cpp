@@ -15,7 +15,6 @@ Engine::Engine()
     memset((void *)&this->svc_addr_, 0, sizeof(this->svc_addr_));
     memset((void *)&this->peer_addr_, 0, sizeof(this->peer_addr_));
     this->svc_fd_ = 0;
-    this->cli_fd_list_.clear();
 
     this->svc_addr_.sin_family = AF_INET;
     this->svc_addr_.sin_port = htons(PORT);
@@ -140,6 +139,9 @@ void *Engine::unit_process(void *this_)
     cout << "tid:" << tid << endl;
     cout << "client_fd:" << client_fd<< endl;
 
+    engine_ptr->client_obj_map_[client_fd] = Actor();
+    Actor &actor_obj = engine_ptr->client_obj_map_[client_fd];
+
     while(true)
     {
         char msg_len_char[sizeof(int16_t)] = {0};
@@ -171,7 +173,7 @@ void *Engine::unit_process(void *this_)
             continue;
         }
 
-        if (engine_ptr->recv_msg(client_fd, &recv_packet) == false)
+        if (actor_obj.process(client_fd, &recv_packet) == false)
         {
             close(client_fd);
             break;
@@ -184,32 +186,4 @@ void *Engine::unit_process(void *this_)
 
     }
     pthread_exit((void *)1);
-}
-
-bool Engine::recv_msg(int client_fd, void* recv_packet)
-{
-    DataPacket &request = *(DataPacket *)recv_packet;
-    int16_t msg_number;
-    request >> msg_number;
-    cout << "msg_number : " << msg_number << endl;
-
-    DataPacket respond;
-    int16_t len = sizeof(int16_t);
-    int16_t num = msg_number + 1;
-    respond << len;
-    respond << num;
-    return this->send_msg(client_fd, &respond);
-}
-
-bool Engine::send_msg(int client_fd, void* send_packet)
-{
-    DataPacket &respond = *(DataPacket *)send_packet;
-    int ret = send(client_fd, respond.get_data_ptr(), respond.get_data_size(), 0);
-    if (-1 == ret)
-    {
-        cout << "service operator errno:" << errno << endl;
-        return false;
-    }
-    cout << "respond end" << respond.get_data_size() << endl;
-    return true;
 }

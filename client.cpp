@@ -28,10 +28,13 @@ int main()
 
 	while(1)
 	{
-    	getchar();
+    	int16_t c = getchar();
+        if (c == 10) continue;
+        c -= 48;
+        cout << c << endl;
         DataPacket dp;
         dp << (int16_t)sizeof(int16_t);
-        dp << (int16_t)23;
+        dp << c;
         cout << "send size:" << dp.get_data_size() << endl;
        	write(fd, dp.get_data_ptr(), dp.get_data_size());
         char msg_len_char[sizeof(int16_t)];
