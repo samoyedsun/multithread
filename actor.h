@@ -1,10 +1,6 @@
 #ifndef ACTOR
 #define ACTOR
 
-#include "data_packet.h"
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <iostream>
 
 class Actor

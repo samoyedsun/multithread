@@ -2,16 +2,9 @@
 #define ENGINE
 
 #include <iostream>
-#include <queue>
-#include <list>
 #include <map>
-#include <sys/syscall.h>
 #include <netinet/in.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include "actor.h"
-
 using namespace std;
 
 class Engine
@@ -31,16 +24,8 @@ class Engine
 
     static void *unit_process(void* this_);
 
-    inline pid_t gettid()
-    {
-        return syscall(SYS_gettid);
-    }
-
     struct sockaddr_in svc_addr_;
     struct sockaddr_in peer_addr_;
-
-    queue<void *> msg_queue_send_;
-    queue<void *> msg_queue_recv_;
 
     int svc_fd_;
     map<pthread_t, int> client_info_map_;

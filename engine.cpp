@@ -4,7 +4,9 @@
 
 #include <pthread.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -185,5 +187,6 @@ void *Engine::unit_process(void *this_)
         }
 
     }
+    engine_ptr->client_obj_map_.erase(client_fd);
     pthread_exit((void *)1);
 }

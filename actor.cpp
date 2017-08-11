@@ -1,4 +1,8 @@
 #include "actor.h"
+#include "data_packet.h"
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 Actor::Actor()
 {
