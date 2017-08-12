@@ -6,8 +6,6 @@
 
 #include <iostream>
 
-#define MAX_COLUMN_LEN 32
-
 int finish_with_error(MYSQL *con)
 {
     fprintf(stderr, "%s\n", mysql_error(con));
