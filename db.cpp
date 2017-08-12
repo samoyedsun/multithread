@@ -50,6 +50,7 @@ int test_query()
 
     if (mysql_query(con, "CREATE TABLE IF NOT EXISTS person(name TEXT, password TEXT)"))
         return finish_with_error(con);
+
     if (mysql_query(con, "INSERT INTO person values(\"hunhun\", \"hunhun_pw\")"))
         return finish_with_error(con);
 
