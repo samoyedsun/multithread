@@ -117,6 +117,7 @@ class DataPacket
                 std::cout << "memory copy fail!"  << std::endl;
                 return *this;
             }
+            val = buf_str;
             this->pos_ptr_ = buf_ptr + buf_size;
             this->block_count_ -= buf_size + sizeof(buf_ptr);
             return *this;
