@@ -30,8 +30,8 @@ int main()
 	{
     	int16_t c = getchar();
         if (c == 10) continue;
-        c -= 48;
-        cout << c << endl;
+        if (9 == (c -= 48)) break;
+
         DataPacket dp;
         dp << (int16_t)sizeof(int16_t);
         dp << c;

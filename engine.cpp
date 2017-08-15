@@ -180,12 +180,6 @@ void *Engine::unit_process(void *this_)
             close(client_fd);
             break;
         }
-
-        if (msg_len_int16 == 0)
-        {
-            continue;
-        }
-
     }
     engine_ptr->client_obj_map_.erase(client_fd);
     pthread_exit((void *)1);
