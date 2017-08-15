@@ -10,7 +10,7 @@ class DataPacket
         DataPacket();
         DataPacket(int size);
         ~DataPacket();
-	template <typename T>
+	    template <typename T>
         DataPacket& operator << (const T &val)
         {
             void *buf_ptr = NULL;
@@ -41,6 +41,13 @@ class DataPacket
             return *this;
         }
 
+        DataPacket& operator << (std::string &val)
+        {
+            if (0u >= this->block_count_)
+                return *this;
+           // int16_t str_size;
+
+        }
 
         template <typename T>
         DataPacket& operator >> (T &val)
@@ -62,6 +69,14 @@ class DataPacket
 
             std::cout << "ele_val:" << val << std::endl;
             return *this;
+        }
+
+        DataPacket& operator >> (std::string &val)
+        {
+            if (0u >= this->block_count_)
+                return *this;
+           // int16_t str_size;
+
         }
 
         void* get_data_ptr();
