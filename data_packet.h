@@ -103,7 +103,7 @@ class DataPacket
         {
             if (0 >= this->block_count_)
                 return *this;
-            int16_t buf_size;
+            int16_t buf_size = 0;
             char *buf_ptr =  (char *)this->pos_ptr_;
             if (NULL == memcpy((void *)&buf_size, buf_ptr, sizeof(buf_size)))
             {
@@ -111,7 +111,8 @@ class DataPacket
                 return *this;
             }
             buf_ptr += sizeof(buf_size);
-            char buf_str[buf_size + 1] = {0};
+            char buf_str[buf_size + 1];
+            memset(buf_str, 0, buf_size+1);
             if (NULL == memcpy((void *)buf_str, buf_ptr, buf_size))
             {
                 std::cout << "memory copy fail!"  << std::endl;
