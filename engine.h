@@ -29,7 +29,7 @@ class Engine
 
     int svc_fd_;
     map<pthread_t, int> client_info_map_;
-    map<pthread_t, Actor> client_obj_map_;
+    map<int, Actor> client_obj_map_;
 };
 
 #endif

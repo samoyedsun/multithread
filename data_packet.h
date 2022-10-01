@@ -22,11 +22,7 @@ class DataPacket
                     std::cout << "memory allocation fail!"  << std::endl;
                     return *this;
                 }
-                if (NULL == memcpy(buf_ptr, (void *)&val, new_size))
-                {
-                    std::cout << "memory copy fail!"  << std::endl;
-                    return *this;
-                }
+                memcpy(buf_ptr, (void *)&val, new_size);
             }
             else
             {
@@ -37,14 +33,11 @@ class DataPacket
                     std::cout << "memory allocation fail!"  << std::endl;
                     return *this;
                 }
-                if (NULL == memcpy((char *)buf_ptr + this->block_count_, (void *)&val, buf_size));
-                {
-                    std::cout << "memory copy fail!"  << std::endl;
-                    return *this;
-                }
+                memcpy((char *)buf_ptr + this->block_count_, (void *)&val, buf_size);
             }
             this->data_block_ = this->pos_ptr_ = buf_ptr;
             this->block_count_ = new_size;
+            std::cout << "new size:" << new_size << std::endl;
             return *this;
         }
 
@@ -63,17 +56,9 @@ class DataPacket
                 return *this;
             }
             int buf_count = this->block_count_;
-            if (NULL == memcpy((char *)buf_ptr + buf_count, (void *)&buf_size, sizeof(buf_size)))
-            {
-                std::cout << "memory copy fail!"  << std::endl;
-                return *this;
-            }
+            memcpy((char *)buf_ptr + buf_count, (void *)&buf_size, sizeof(buf_size));
             buf_count += sizeof(buf_size);
-            if (NULL == memcpy((char *)buf_ptr + buf_count, (void *)val.c_str(), buf_size))
-            {
-                std::cout << "memory copy fail!"  << std::endl;
-                return *this;
-            }
+            memcpy((char *)buf_ptr + buf_count, (void *)val.c_str(), buf_size);
             this->data_block_ = this->pos_ptr_ = buf_ptr;
             this->block_count_ = new_size;
             return *this;
@@ -88,11 +73,7 @@ class DataPacket
             int ele_size = sizeof(val);
             std::cout << "ele_size:" << ele_size << std::endl;
             char *buf_ptr =  (char *)this->pos_ptr_;
-            if (NULL == memcpy((void *)&val, buf_ptr, ele_size))
-            {
-                std::cout << "memory copy fail!"  << std::endl;
-                return *this;
-            }
+            memcpy((void *)&val, buf_ptr, ele_size);
             this->pos_ptr_ = buf_ptr + ele_size;
             this->block_count_ -= ele_size;
             std::cout << "ele_val:" << val << std::endl;
@@ -105,19 +86,11 @@ class DataPacket
                 return *this;
             int16_t buf_size = 0;
             char *buf_ptr =  (char *)this->pos_ptr_;
-            if (NULL == memcpy((void *)&buf_size, buf_ptr, sizeof(buf_size)))
-            {
-                std::cout << "memory copy fail!"  << std::endl;
-                return *this;
-            }
+            memcpy((void *)&buf_size, buf_ptr, sizeof(buf_size));
             buf_ptr += sizeof(buf_size);
             char buf_str[buf_size + 1];
             memset(buf_str, 0, buf_size+1);
-            if (NULL == memcpy((void *)buf_str, buf_ptr, buf_size))
-            {
-                std::cout << "memory copy fail!"  << std::endl;
-                return *this;
-            }
+            memcpy((void *)buf_str, buf_ptr, buf_size);
             val = buf_str;
             this->pos_ptr_ = buf_ptr + buf_size;
             this->block_count_ -= buf_size + sizeof(buf_ptr);

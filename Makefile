@@ -10,8 +10,8 @@ client_bin:$(clientobj)
 
 server_bin:$(serverobj)
 	g++ -o server_bin $(serverobj) \
-		-lpthread -lmysqlclient \
-		-L/usr/lib/mysql
+		#-lpthread -lmysqlclient \
+		#-L/usr/lib/mysql
 
 client.o:client.cpp
 	g++ -c client.cpp

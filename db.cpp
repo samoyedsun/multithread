@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+/*
 #include <mysql/my_global.h>
 #include <mysql/mysql.h>
 
@@ -96,3 +96,4 @@ int drop_database()
 
     return finish_with_correct(con);
 }
+*/

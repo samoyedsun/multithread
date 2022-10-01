@@ -21,7 +21,7 @@ int main()
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(9988);
-	addr.sin_addr.s_addr = inet_addr("112.74.169.72");
+	addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) == -1)
 		perror("accept");
